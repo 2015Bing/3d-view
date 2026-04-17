@@ -267,7 +267,7 @@
     // 加载模型配置
     async function loadModelConfig() {
       try {
-        const response = await fetch('/models.json');
+        const response = await fetch('/3d-view/models.json');
         modelConfig = await response.json();
         populateModelSelector();
         // 自动加载第一个模型
