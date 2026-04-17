@@ -1,0 +1,14 @@
+{
+    "models": [
+        {
+            "id": 1,
+            "name": "两个小男孩",
+            "value": "https://2015bing.github.io/3d-view/static/20260415.glb"
+        },
+        {
+            "id": 2,
+            "name": "三小只",
+            "value": "https://2015bing.github.io/3d-view/static/20260417.glb"
+        }
+    ]
+}

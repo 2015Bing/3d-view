@@ -116,51 +116,35 @@
       flex-shrink: 0;
     }
 
-    /* URL输入区 */
-    .url-section {
+    /* 模型选择区 */
+    .model-select {
       margin-bottom: 12px;
     }
 
-    .url-input-wrapper {
-      display: flex;
-      gap: 8px;
-    }
-
-    .url-input {
-      flex: 1;
+    .model-select select {
+      width: 100%;
       padding: 12px 14px;
       background: #1a1a24;
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 10px;
       color: #fff;
       font-size: 14px;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      cursor: pointer;
     }
 
-    .url-input:focus {
+    .model-select select:focus {
       outline: none;
       border-color: #e94560;
     }
 
-    .url-input::placeholder {
-      color: #555;
-    }
-
-    .load-btn {
-      padding: 12px 20px;
-      background: #e94560;
-      border: none;
-      border-radius: 10px;
+    .model-select select option {
+      background: #1a1a24;
       color: #fff;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-
-    .load-btn:active {
-      background: #d63850;
-      transform: scale(0.98);
+      padding: 8px;
     }
 
     /* 快捷控制按钮 */
@@ -240,11 +224,10 @@
     </div>
 
     <div class="controls">
-      <div class="url-section">
-        <div class="url-input-wrapper">
-          <input type="text" id="model-url" class="url-input" placeholder="输入模型URL地址..." value="https://2015bing.github.io/3d-view/static/20260415.glb">
-          <button class="load-btn" id="btn-load">加载</button>
-        </div>
+      <div class="model-select">
+        <select id="model-selector">
+          <option value="">请选择模型...</option>
+        </select>
       </div>
       <div class="quick-controls">
         <button class="control-btn" id="btn-reset">重置</button>
@@ -279,6 +262,36 @@
     let currentModel = null;
     let isWireframe = false;
     let isAutoRotate = false;
+    let modelConfig = { models: [] };
+
+    // 加载模型配置
+    async function loadModelConfig() {
+      try {
+        const response = await fetch('/models.json');
+        modelConfig = await response.json();
+        populateModelSelector();
+        // 自动加载第一个模型
+        if (modelConfig.models.length > 0) {
+          const selector = document.getElementById('model-selector');
+          selector.value = modelConfig.models[0].value;
+          loadModelFromURL(modelConfig.models[0].value);
+        }
+      } catch (error) {
+        console.error('加载模型配置失败:', error);
+      }
+    }
+
+    // 填充下拉框
+    function populateModelSelector() {
+      const selector = document.getElementById('model-selector');
+      selector.innerHTML = '<option value="">请选择模型...</option>';
+      modelConfig.models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.value;
+        option.textContent = model.name;
+        selector.appendChild(option);
+      });
+    }
 
     // 初始化
     function init() {
@@ -310,13 +323,10 @@
       // 显示空状态提示
       document.getElementById('empty-hint').classList.add('show');
 
-      // 自动加载默认URL
-      const urlInput = document.getElementById('model-url');
-      if (urlInput.value.trim()) {
-        loadModelFromURL(urlInput.value.trim());
-      }
-
       animate();
+
+      // 加载模型配置
+      loadModelConfig();
     }
 
     function setupLights() {
@@ -435,18 +445,11 @@
 
     // 事件监听
     function setupEventListeners() {
-      const urlInput = document.getElementById('model-url');
-      const loadBtn = document.getElementById('btn-load');
-
-      loadBtn.addEventListener('click', () => {
-        const url = urlInput.value.trim();
-        if (url) loadModelFromURL(url);
-      });
-
-      urlInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          const url = urlInput.value.trim();
-          if (url) loadModelFromURL(url);
+      // 下拉框选择时自动加载
+      document.getElementById('model-selector').addEventListener('change', (e) => {
+        const url = e.target.value;
+        if (url) {
+          loadModelFromURL(url);
         }
       });
 
